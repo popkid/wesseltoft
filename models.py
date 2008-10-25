@@ -1,5 +1,6 @@
-from django.db import models
 import datetime
+
+from django.db import models
 from django.contrib.auth.models import User
 from tagging.fields import TagField
 from markdown import markdown
@@ -45,33 +46,25 @@ class Entry (models.Model):
                 (DRAFT_STATUS, 'Draft'),
                 (HIDDEN_STATUS, 'Hidden'),
     )
-    author = models.ForeignKey(User)
+    
     title = models.CharField('title', max_length=300, help_text='Descriptive title')
-    slug = models.SlugField('slug', unique_for_date='pub_date', 
-                                                        help_text='For use in generating url. One slug per date.')
-    excerpt = models.TextField(blank=True)
+    excerpt = models.TextField(blank=True, help_text='A optional summary of the contents')
     body = models.TextField()
     pub_date = models.DateTimeField(default=datetime.datetime.now)
-    enable_comments = models.BooleanField(default=True)
-    featured = models.BooleanField(default=False)
-    status = models.IntegerField(choices=STATUS_CHOICES, default=PUBLISH_STATUS)
-    categories = models.ManyToManyField(Category)
-    tags = TagField()
-    markup = models.IntegerField(choices=MARKUP_CHOICES, default=MARKDOWN_MARKUP)
+    
     excerpt_html = models.TextField(editable=False, blank=True)
     body_html = models.TextField(editable=False, blank=True)
     
-    def save(self):
-        if self.MARKUP_CHOICES == self.MARKDOWN_MARKUP:            
-            self.body_html = markdown(self.body)
-            if self.excerpt:
-                self.excerpt_html = markdown(self.excerpt)
-            super(Entry, self).save()
-        elif self.MARKUP_CHOICES == self.TEXTILE_MARKUP:            
-            self.body_html = textile(self.body)
-            if self.excerpt:
-                self.excerpt_html = textile(self.excerpt)
-        super(Entry, self).save()
+    author = models.ForeignKey(User)
+    slug = models.SlugField('slug', unique_for_date='pub_date', 
+                                                        help_text='For use in generating url. One slug per date.')
+    enable_comments = models.BooleanField(default=True)
+    featured = models.BooleanField(default=False)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=PUBLISH_STATUS)
+    markup = models.IntegerField(choices=MARKUP_CHOICES, default=MARKDOWN_MARKUP)
+    
+    categories = models.ManyToManyField(Category)
+    tags = TagField(help_text='Descriptive comma separated tag(s)')
         
     class Meta:
         verbose_name_plural = "Entries"
@@ -82,6 +75,19 @@ class Entry (models.Model):
         
     def __unicode__(self):
         return self.title
+    
+    def save(self):
+        #Needs refactoring
+        if self.MARKUP_CHOICES == self.MARKDOWN_MARKUP:            
+            self.body_html = markdown(self.body)
+            if self.excerpt:
+                self.excerpt_html = markdown(self.excerpt)
+            super(Entry, self).save()
+        elif self.MARKUP_CHOICES == self.TEXTILE_MARKUP:            
+            self.body_html = textile(self.body)
+            if self.excerpt:
+                self.excerpt_html = textile(self.excerpt)
+        super(Entry, self).save()
         
     def get_absolute_url(self):
         return "/weblog/%s/%s/" % \
