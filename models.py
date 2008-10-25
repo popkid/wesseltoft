@@ -78,16 +78,16 @@ class Entry (models.Model):
     
     def save(self):
         #Needs refactoring
-        if self.MARKUP_CHOICES == self.MARKDOWN_MARKUP:            
-            self.body_html = markdown(self.body)
-            if self.excerpt:
-                self.excerpt_html = markdown(self.excerpt)
-            super(Entry, self).save()
-        elif self.MARKUP_CHOICES == self.TEXTILE_MARKUP:            
-            self.body_html = textile(self.body)
-            if self.excerpt:
-                self.excerpt_html = textile(self.excerpt)
+        #if self.markup == self.MARKDOWN_MARKUP:            
+        self.body_html = markdown(self.body)
+        if self.excerpt:
+            self.excerpt_html = markdown(self.excerpt)
         super(Entry, self).save()
+        #elif self.markup == self.TEXTILE_MARKUP:            
+           # self.body_html = textile(self.body)
+           # if self.excerpt:
+          #      self.excerpt_html = textile(self.excerpt)
+       # super(Entry, self).save()
         
     def get_absolute_url(self):
         return "/weblog/%s/%s/" % \

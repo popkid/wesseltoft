@@ -64,7 +64,7 @@ class Entry (models.Model):
     markup = models.IntegerField(choices=MARKUP_CHOICES, default=MARKDOWN_MARKUP)
     
     categories = models.ManyToManyField(Category)
-    tags = TagField(help_text='Descriptive tag(s)')
+    tags = TagField(help_text='Descriptive comma separated tag(s)')
         
     class Meta:
         verbose_name_plural = "Entries"
@@ -78,12 +78,11 @@ class Entry (models.Model):
     
     def save(self):
         #Needs refactoring
-        if self.MARKUP_CHOICES == self.MARKDOWN_MARKUP:            
+        if self.objects.filter(self.markup = self.MARKDOWN_MARKUP):            
             self.body_html = markdown(self.body)
             if self.excerpt:
                 self.excerpt_html = markdown(self.excerpt)
-            super(Entry, self).save()
-        elif self.MARKUP_CHOICES == self.TEXTILE_MARKUP:            
+        elif self.objects.filter(self.markup = self.TEXTILE_MARKUP):            
             self.body_html = textile(self.body)
             if self.excerpt:
                 self.excerpt_html = textile(self.excerpt)
