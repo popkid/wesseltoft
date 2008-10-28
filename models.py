@@ -88,13 +88,16 @@ class Entry (models.Model):
            # if self.excerpt:
           #      self.excerpt_html = textile(self.excerpt)
        # super(Entry, self).save()
-        
+    
+    
     def get_absolute_url(self):
-        return "/weblog/%s/%s/" % \
-                      (self.pub_date.strftime("%Y/%b/%d").lower(), self.slug)
-    
-    
-    
+            return ('wesseltoft_entry_detail', (), { 
+                                           'year': self.pub_date.strftime("%Y"),
+                                           'month': self.pub_date.strftime("%b").lower(),
+                                           'day': self.pub_date.strftime("%d"),
+                                           'slug': self.slug })
+    get_absolute_url = models.permalink(get_absolute_url)
+
     
     
     

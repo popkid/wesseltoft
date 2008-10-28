@@ -78,22 +78,30 @@ class Entry (models.Model):
     
     def save(self):
         #Needs refactoring
-        if self.objects.filter(self.markup = self.MARKDOWN_MARKUP):            
-            self.body_html = markdown(self.body)
-            if self.excerpt:
-                self.excerpt_html = markdown(self.excerpt)
-        elif self.objects.filter(self.markup = self.TEXTILE_MARKUP):            
-            self.body_html = textile(self.body)
-            if self.excerpt:
-                self.excerpt_html = textile(self.excerpt)
+        #if self.markup == self.MARKDOWN_MARKUP:            
+        self.body_html = markdown(self.body)
+        if self.excerpt:
+            self.excerpt_html = markdown(self.excerpt)
         super(Entry, self).save()
+        #elif self.markup == self.TEXTILE_MARKUP:            
+           # self.body_html = textile(self.body)
+           # if self.excerpt:
+          #      self.excerpt_html = textile(self.excerpt)
+       # super(Entry, self).save()
         
     def get_absolute_url(self):
         return "/weblog/%s/%s/" % \
                       (self.pub_date.strftime("%Y/%b/%d").lower(), self.slug)
     
     
-    
+    def get_absolute_url(self):
+            return ('wesseltoft_entry_detail', (), { 
+                                           'year': self.pub_date.strftime("%Y"),
+                                           'month': self.pub_date.strftime("%b").lower(),
+                                           'day': self.pub_date.strftime("%d"),
+                                           'slug': self.slug })
+    get_absolute_url = models.permalink(get_absolute_url)
+
     
     
     
