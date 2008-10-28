@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 from tagging.fields import TagField
 from markdown import markdown
 from textile import textile
@@ -88,10 +89,6 @@ class Entry (models.Model):
            # if self.excerpt:
           #      self.excerpt_html = textile(self.excerpt)
        # super(Entry, self).save()
-        
-    def get_absolute_url(self):
-        return "/weblog/%s/%s/" % \
-                      (self.pub_date.strftime("%Y/%b/%d").lower(), self.slug)
     
     
     def get_absolute_url(self):
@@ -101,9 +98,55 @@ class Entry (models.Model):
                                            'day': self.pub_date.strftime("%d"),
                                            'slug': self.slug })
     get_absolute_url = models.permalink(get_absolute_url)
-
     
-    
+class Link (models.Model):
+    enable_comments = models.BooleanField(default=True)
+    post_elsewhere = models.BooleanField('Post to del.icio.us', default=True,
+                                                                            help_text='If checked, link will be posted to \
+                                                                            del.icio.us.')
+    posted_by = models.ForeignKey(User)
+    pub_date = models.DateTimeField(default=datetime.datetime.now)
+    title = models.CharField('title',max_length=300)
+    slug = models.SlugField('slug', unique_for_date='pub_date', 
+                                                        help_text='For use in generating url. One slug per date.')
+    # Link                                                        
+    description = models.TextField(blank=True)
+    description_html = models.TextField(editable=False, blank=True)
+    via_name = models.CharField('Via', max_length=300, blank=True,
+                                                           help_text='The name of the person who refered you \
+                                                           to the link. Optional.')
+    via_url = models.URLField('Via Url', blank=True,
+                                                  help_text='The URL where you found the link. Optional.')
+    url = models.URLField(unique=True)
+    tags = TagField()
+                                                  
+    class Meta:
+        ordering = ['-pub_date']
+        
+    class Admin:
+        pass
+        
+    def __unicode__(self):
+        return self.title
+        
+    def save(self):
+        if self.description:
+            self.description_html = markdown(self.description)
+        if not self.id and self.post_elsewhere:
+            import pydelicious
+            from django.utils.encoding import smart_str
+            pydelicious.add(settings.DELICIOUS_USER, settings.DELICIOUS_PASSWORD,
+                                         smart_str(self.url), smart_str(self.title), smart_str(self.tags))
+        super(Link, self).save()
+        
+    def get_absolute_url(self):
+        return ('wesseltoft_link_detail', (), { 
+                                            'year': self.pub_date,strftime('%Y'),
+                                            'month': self.pub_date.strftime('%b').lower(),
+                                            'dat': self.pub_date,strftime('%d'),
+                                            'slug': self.slug }),
+    get_absolute_url = models.permalink(get_absolute_url)
+                                            
     
     
     
